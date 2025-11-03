@@ -76,7 +76,7 @@
                   @click="startMonitoring"
                   :disabled="!canStart"
                   class="bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200"
-                  :title="canStart ? 'Ready to start' : 'Check: FTP set, zones configured, Bluetooth connected'"
+                  :title="canStart ? 'Ready to start' : 'Check: FTP set, mapping configured, Bluetooth connected'"
                 >
                   Start Playing Along
                 </button>
