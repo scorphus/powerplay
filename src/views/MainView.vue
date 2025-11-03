@@ -82,6 +82,7 @@
                   @click="startMonitoring"
                   :disabled="!canStart"
                   class="bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200"
+                  :title="canStart ? 'Ready to start' : 'Check: FTP set, zones configured, Bluetooth connected'"
                 >
                   Start Playing Along
                 </button>
@@ -270,7 +271,11 @@ const bluetoothService = new BluetoothPowerService()
 let playbackCheckInterval: number | null = null
 
 const canStart = computed(() => {
-  return localFtp.value > 0 && localZones.value.every(z => z.playlistId !== '') && bluetoothService.isConnected()
+  const ftpOk = localFtp.value > 0
+  const zonesOk = localZones.value.every(z => z.playlistId !== '')
+  const btOk = workoutStore.isBluetoothConnected
+  console.log('canStart check:', { ftpOk, zonesOk, btOk, ftp: localFtp.value, zones: localZones.value.length })
+  return ftpOk && zonesOk && btOk
 })
 
 const currentPlaylistName = computed(() => {
