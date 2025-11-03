@@ -1,5 +1,6 @@
 import { useAuthStore } from '../stores/auth'
 import type { Playlist } from '../types'
+import { debug, debugError } from '../utils/debug'
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID
 const REDIRECT_URI = `${window.location.origin}/callback`
@@ -72,6 +73,7 @@ export async function handleSpotifyCallback(code: string): Promise<void> {
 }
 
 export async function refreshAccessToken(): Promise<void> {
+  debug('[Spotify] POST /api/token - Refreshing access token')
   const authStore = useAuthStore()
   if (!authStore.refreshToken) {
     throw new Error('No refresh token available')
@@ -93,6 +95,7 @@ export async function refreshAccessToken(): Promise<void> {
   }
   const data = await response.json()
   authStore.updateAccessToken(data.access_token, data.expires_in)
+  debug('[Spotify] Access token refreshed')
 }
 
 async function spotifyFetch(endpoint: string, options: RequestInit = {}): Promise<Response> {
@@ -118,6 +121,7 @@ async function spotifyFetch(endpoint: string, options: RequestInit = {}): Promis
 }
 
 export async function getUserPlaylists(): Promise<Playlist[]> {
+  debug('[Spotify] GET /me/playlists - Fetching user playlists')
   const playlists: Playlist[] = []
   let url = '/me/playlists?limit=50'
   while (url) {
@@ -133,25 +137,31 @@ export async function getUserPlaylists(): Promise<Playlist[]> {
     })))
     url = data.next ? data.next.replace('https://api.spotify.com/v1', '') : null
   }
+  debug(`[Spotify] Fetched ${playlists.length} playlists`)
   return playlists
 }
 
 export async function getCurrentPlayback(): Promise<{ isPlaying: boolean; playlistUri: string | null }> {
+  debug('[Spotify] GET /me/player - Getting current playback state')
   const response = await spotifyFetch('/me/player')
   if (response.status === 204) {
+    debug('[Spotify] No active playback')
     return { isPlaying: false, playlistUri: null }
   }
   if (!response.ok) {
     throw new Error('Failed to get current playback')
   }
   const data = await response.json()
-  return {
+  const result = {
     isPlaying: data.is_playing,
     playlistUri: data.context?.uri || null,
   }
+  debug('[Spotify] Playback state:', result)
+  return result
 }
 
 export async function startPlayback(playlistUri: string): Promise<void> {
+  debug('[Spotify] PUT /me/player/play - Switching to playlist:', playlistUri)
   const response = await spotifyFetch('/me/player/play', {
     method: 'PUT',
     headers: {
@@ -162,6 +172,8 @@ export async function startPlayback(playlistUri: string): Promise<void> {
     }),
   })
   if (!response.ok && response.status !== 204) {
+    debugError('[Spotify] Failed to start playback, status:', response.status)
     throw new Error('Failed to start playback')
   }
+  debug('[Spotify] Playback started successfully')
 }

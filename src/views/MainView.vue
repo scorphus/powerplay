@@ -251,6 +251,7 @@ import { usePlaylistsStore } from '../stores/playlists'
 import { BluetoothPowerService, isBluetoothSupported } from '../services/bluetooth'
 import { initiateSpotifyAuth, getCurrentPlayback, startPlayback } from '../services/spotify'
 import type { PowerZone } from '../types'
+import { debug } from '../utils/debug'
 
 const authStore = useAuthStore()
 const configStore = useConfigStore()
@@ -274,7 +275,6 @@ const canStart = computed(() => {
   const ftpOk = localFtp.value > 0
   const zonesOk = localZones.value.every(z => z.playlistId !== '')
   const btOk = workoutStore.isBluetoothConnected
-  console.log('canStart check:', { ftpOk, zonesOk, btOk, ftp: localFtp.value, zones: localZones.value.length })
   return ftpOk && zonesOk && btOk
 })
 
@@ -401,6 +401,8 @@ async function stopMonitoring() {
 }
 
 function handlePowerMeasurement(power: number) {
+  const ftpPercent = configStore.ftp > 0 ? Math.round((power / configStore.ftp) * 100) : 0
+  debug(`[Power] ${power}W (${ftpPercent}% FTP)`)
   workoutStore.updatePower(power)
   checkAndSwitchPlaylist()
 }
