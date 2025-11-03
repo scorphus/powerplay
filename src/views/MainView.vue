@@ -94,12 +94,6 @@
                   Stop
                 </button>
               </div>
-
-              <div v-if="!isWorkoutActive && !workoutStore.isSpotifyPlaying" class="bg-blue-500/20 border border-blue-500 rounded-lg p-3">
-                <p class="text-blue-200 text-sm">
-                  💡 <strong>Tip:</strong> Start playing music on Spotify first (on any device), then click "Start Playing Along"
-                </p>
-              </div>
             </div>
 
             <!-- Power Display -->
@@ -192,17 +186,17 @@
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
               </div>
 
-              <div v-else class="space-y-3 max-h-96 overflow-y-auto">
+              <div v-else class="space-y-4 max-h-96 overflow-y-auto">
                 <div
                   v-for="(zone, index) in localZones"
                   :key="index"
-                  class="bg-white/5 border-2 rounded-lg p-3"
-                  :class="isActiveZone(zone) ? 'border-green-400' : 'border-white/20'"
+                  class="pb-4"
+                  :class="{ 'border-b border-white/10': index < localZones.length - 1 }"
                 >
-                  <div class="flex items-start gap-2 mb-2">
+                  <div class="flex items-center gap-3">
                     <div class="flex-1 space-y-2">
-                      <div class="flex items-center gap-2">
-                        <span class="text-gray-300 text-sm">Power higher than</span>
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-gray-400 text-sm">Power higher than</span>
                         <input
                           v-model.number="zone.minPower"
                           @change="handleSaveZones"
@@ -211,29 +205,27 @@
                           max="200"
                           class="w-16 bg-white/20 text-white border border-white/30 rounded px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
                         />
-                        <span class="text-gray-300 text-sm">% of FTP, switch to:</span>
+                        <span class="text-gray-400 text-sm">% of FTP, switch to:</span>
                       </div>
-                      <div class="flex items-center gap-2">
-                        <select
-                          v-model="zone.playlistId"
-                          @change="handleSaveZones"
-                          class="flex-1 bg-white/20 text-white border border-white/30 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      <select
+                        v-model="zone.playlistId"
+                        @change="handleSaveZones"
+                        class="w-full bg-white/20 text-white border border-white/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="" class="bg-gray-800">Select playlist...</option>
+                        <option
+                          v-for="playlist in playlistsStore.playlists"
+                          :key="playlist.id"
+                          :value="playlist.id"
+                          class="bg-gray-800"
                         >
-                          <option value="" class="bg-gray-800">Select playlist...</option>
-                          <option
-                            v-for="playlist in playlistsStore.playlists"
-                            :key="playlist.id"
-                            :value="playlist.id"
-                            class="bg-gray-800"
-                          >
-                            {{ playlist.name }}
-                          </option>
-                        </select>
-                      </div>
+                          {{ playlist.name }}
+                        </option>
+                      </select>
                     </div>
                     <button
                       @click="removeZone(index)"
-                      class="text-red-400 hover:text-red-300 font-bold text-xl flex-shrink-0"
+                      class="text-red-400 hover:text-red-300 font-bold text-2xl flex-shrink-0 w-8 h-8 flex items-center justify-center"
                       :disabled="localZones.length <= 1"
                     >
                       ×
