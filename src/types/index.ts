@@ -10,7 +10,7 @@ export interface Playlist {
   uri: string
 }
 
-export interface PowerZone {
+export interface PlaylistMapping {
   minPower: number
   playlistId: string
 }
@@ -18,7 +18,7 @@ export interface PowerZone {
 export interface Config {
   ftp: number
   deviceAddress: string | null
-  powerZones: PowerZone[]
+  playlistMapping: PlaylistMapping[]
 }
 
 export interface BluetoothDevice {

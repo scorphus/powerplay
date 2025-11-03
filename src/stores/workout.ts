@@ -16,14 +16,14 @@ export const useWorkoutStore = defineStore('workout', () => {
   })
 
   const targetPlaylistId = computed(() => {
-    const zones = configStore.powerZones
+    const mapping = configStore.playlistMapping
     const powerPct = currentPowerPercent.value
-    for (const zone of zones) {
-      if (powerPct >= zone.minPower) {
-        return zone.playlistId
+    for (const m of mapping) {
+      if (powerPct >= m.minPower) {
+        return m.playlistId
       }
     }
-    return zones[zones.length - 1]?.playlistId || null
+    return mapping[mapping.length - 1]?.playlistId || null
   })
 
   function updatePower(watts: number) {

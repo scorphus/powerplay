@@ -169,7 +169,7 @@
               <div class="flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-white">Power to Playlist</h3>
                 <button
-                  @click="addZone"
+                  @click="addMapping"
                   class="bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-3 rounded-lg transition-colors duration-200 text-sm"
                 >
                   + Add
@@ -182,18 +182,18 @@
 
               <div v-else class="space-y-4 max-h-96 overflow-y-auto">
                 <div
-                  v-for="(zone, index) in localZones"
+                  v-for="(mapping, index) in localMapping"
                   :key="index"
                   class="pb-4"
-                  :class="{ 'border-b border-white/10': index < localZones.length - 1 }"
+                  :class="{ 'border-b border-white/10': index < localMapping.length - 1 }"
                 >
                   <div class="flex items-center gap-3">
                     <div class="flex-1 space-y-2">
                       <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-gray-400 text-sm">Power higher than</span>
                         <input
-                          v-model.number="zone.minPower"
-                          @change="handleSaveZones"
+                          v-model.number="mapping.minPower"
+                          @change="handleSaveMapping"
                           type="number"
                           min="0"
                           max="200"
@@ -202,8 +202,8 @@
                         <span class="text-gray-400 text-sm">% of FTP, switch to:</span>
                       </div>
                       <select
-                        v-model="zone.playlistId"
-                        @change="handleSaveZones"
+                        v-model="mapping.playlistId"
+                        @change="handleSaveMapping"
                         class="w-full bg-white/20 text-white border border-white/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                       >
                         <option value="" class="bg-gray-800">Select playlist...</option>
@@ -218,9 +218,9 @@
                       </select>
                     </div>
                     <button
-                      @click="removeZone(index)"
+                      @click="removeMapping(index)"
                       class="text-red-400 hover:text-red-300 font-bold text-2xl flex-shrink-0 w-8 h-8 flex items-center justify-center"
-                      :disabled="localZones.length <= 1"
+                      :disabled="localMapping.length <= 1"
                     >
                       ×
                     </button>
@@ -243,7 +243,7 @@ import { useWorkoutStore } from '../stores/workout'
 import { usePlaylistsStore } from '../stores/playlists'
 import { BluetoothPowerService, isBluetoothSupported } from '../services/bluetooth'
 import { initiateSpotifyAuth, startPlayback } from '../services/spotify'
-import type { PowerZone } from '../types'
+import type { PlaylistMapping } from '../types'
 import { debug } from '../utils/debug'
 
 const authStore = useAuthStore()
@@ -258,15 +258,15 @@ const scanning = ref(false)
 const deviceName = ref<string | null>(null)
 
 const localFtp = ref(configStore.ftp)
-const localZones = ref<PowerZone[]>([...configStore.powerZones])
+const localMapping = ref<PlaylistMapping[]>([...configStore.playlistMapping])
 
 const bluetoothService = new BluetoothPowerService()
 
 const canStart = computed(() => {
   const ftpOk = localFtp.value > 0
-  const zonesOk = localZones.value.every(z => z.playlistId !== '')
+  const mappingOk = localMapping.value.every(m => m.playlistId !== '')
   const btOk = workoutStore.isBluetoothConnected
-  return ftpOk && zonesOk && btOk
+  return ftpOk && mappingOk && btOk
 })
 
 const currentPlaylistName = computed(() => {
@@ -284,8 +284,8 @@ const targetPlaylistName = computed(() => {
 const targetZonePercent = computed(() => {
   const targetId = workoutStore.targetPlaylistId
   if (!targetId) return 0
-  const zone = configStore.powerZones.find(z => z.playlistId === targetId)
-  return zone?.minPower || 0
+  const mapping = configStore.playlistMapping.find(m => m.playlistId === targetId)
+  return mapping?.minPower || 0
 })
 
 function getPowerColor(): string {
@@ -297,8 +297,8 @@ function getPowerColor(): string {
   return 'text-red-400'
 }
 
-function isActiveZone(zone: PowerZone): boolean {
-  return zone.playlistId === workoutStore.targetPlaylistId
+function isActiveMapping(mapping: PlaylistMapping): boolean {
+  return mapping.playlistId === workoutStore.targetPlaylistId
 }
 
 async function handleLogin() {
@@ -328,19 +328,19 @@ function handleSaveFtp() {
   configStore.setFtp(localFtp.value)
 }
 
-function handleSaveZones() {
-  const sorted = [...localZones.value].sort((a, b) => b.minPower - a.minPower)
-  configStore.setPowerZones(sorted)
+function handleSaveMapping() {
+  const sorted = [...localMapping.value].sort((a, b) => b.minPower - a.minPower)
+  configStore.setPlaylistMapping(sorted)
 }
 
-function addZone() {
-  localZones.value.push({ minPower: 0, playlistId: '' })
+function addMapping() {
+  localMapping.value.push({ minPower: 0, playlistId: '' })
 }
 
-function removeZone(index: number) {
-  if (localZones.value.length > 1) {
-    localZones.value.splice(index, 1)
-    handleSaveZones()
+function removeMapping(index: number) {
+  if (localMapping.value.length > 1) {
+    localMapping.value.splice(index, 1)
+    handleSaveMapping()
   }
 }
 
@@ -421,7 +421,7 @@ async function checkAndSwitchPlaylist() {
 onMounted(async () => {
   if (authStore.isAuthenticated) {
     await playlistsStore.fetchPlaylists()
-    localZones.value = [...configStore.powerZones]
+    localMapping.value = [...configStore.playlistMapping]
   }
 })
 

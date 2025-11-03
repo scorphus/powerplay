@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Config, PowerZone } from '../types'
+import type { Config, PlaylistMapping } from '../types'
 
 const STORAGE_KEY = 'powerplay_config'
 
 const DEFAULT_CONFIG: Config = {
   ftp: 250,
   deviceAddress: null,
-  powerZones: [
+  playlistMapping: [
     { minPower: 0, playlistId: '' },
   ],
 }
@@ -15,7 +15,7 @@ const DEFAULT_CONFIG: Config = {
 export const useConfigStore = defineStore('config', () => {
   const ftp = ref<number>(DEFAULT_CONFIG.ftp)
   const deviceAddress = ref<string | null>(DEFAULT_CONFIG.deviceAddress)
-  const powerZones = ref<PowerZone[]>([...DEFAULT_CONFIG.powerZones])
+  const playlistMapping = ref<PlaylistMapping[]>([...DEFAULT_CONFIG.playlistMapping])
 
   function setFtp(value: number) {
     ftp.value = value
@@ -27,37 +27,37 @@ export const useConfigStore = defineStore('config', () => {
     saveToStorage()
   }
 
-  function addZone(zone: PowerZone) {
-    powerZones.value.push(zone)
-    sortZones()
+  function addMapping(mapping: PlaylistMapping) {
+    playlistMapping.value.push(mapping)
+    sortMapping()
     saveToStorage()
   }
 
-  function updateZone(index: number, zone: PowerZone) {
-    powerZones.value[index] = zone
-    sortZones()
+  function updateMapping(index: number, mapping: PlaylistMapping) {
+    playlistMapping.value[index] = mapping
+    sortMapping()
     saveToStorage()
   }
 
-  function removeZone(index: number) {
-    powerZones.value.splice(index, 1)
+  function removeMapping(index: number) {
+    playlistMapping.value.splice(index, 1)
     saveToStorage()
   }
 
-  function setPowerZones(zones: PowerZone[]) {
-    powerZones.value = zones
+  function setPlaylistMapping(mapping: PlaylistMapping[]) {
+    playlistMapping.value = mapping
     saveToStorage()
   }
 
-  function sortZones() {
-    powerZones.value.sort((a, b) => b.minPower - a.minPower)
+  function sortMapping() {
+    playlistMapping.value.sort((a, b) => b.minPower - a.minPower)
   }
 
   function saveToStorage() {
     const data: Config = {
       ftp: ftp.value,
       deviceAddress: deviceAddress.value,
-      powerZones: powerZones.value,
+      playlistMapping: playlistMapping.value,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }
@@ -66,11 +66,11 @@ export const useConfigStore = defineStore('config', () => {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
       try {
-        const data: Config = JSON.parse(stored)
+        const data: any = JSON.parse(stored)
         ftp.value = data.ftp
         deviceAddress.value = data.deviceAddress
-        powerZones.value = data.powerZones
-        sortZones()
+        playlistMapping.value = data.playlistMapping || data.powerZones || []
+        sortMapping()
       } catch (error) {
         console.error('Failed to parse stored config data:', error)
       }
@@ -80,7 +80,7 @@ export const useConfigStore = defineStore('config', () => {
   function reset() {
     ftp.value = DEFAULT_CONFIG.ftp
     deviceAddress.value = DEFAULT_CONFIG.deviceAddress
-    powerZones.value = [...DEFAULT_CONFIG.powerZones]
+    playlistMapping.value = [...DEFAULT_CONFIG.playlistMapping]
     saveToStorage()
   }
 
@@ -89,13 +89,13 @@ export const useConfigStore = defineStore('config', () => {
   return {
     ftp,
     deviceAddress,
-    powerZones,
+    playlistMapping,
     setFtp,
     setDeviceAddress,
-    addZone,
-    updateZone,
-    removeZone,
-    setPowerZones,
+    addMapping,
+    updateMapping,
+    removeMapping,
+    setPlaylistMapping,
     reset,
   }
 })
