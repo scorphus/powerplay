@@ -42,7 +42,7 @@ onMounted(async () => {
   }
   try {
     await handleSpotifyCallback(code)
-    router.push('/config')
+    router.push('/')
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Unknown error occurred'
   }
