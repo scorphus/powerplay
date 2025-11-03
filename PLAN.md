@@ -73,8 +73,8 @@ Browser-based app to automatically switch Spotify playlists based on cycling pow
 - Persist to localStorage
 
 #### Config Store (`src/stores/config.ts`)
-- State: `ftp`, `deviceAddress`, `powerZones: { minPower: number, playlistId: string }[]`
-- Actions: `setFtp()`, `addZone()`, `removeZone()`, `updateZone()`
+- State: `ftp`, `deviceAddress`, `playlistMapping: { minPower: number, playlistId: string }[]`
+- Actions: `setFtp()`, `addMapping()`, `removeMapping()`, `updateMapping()`
 - Persist to localStorage
 
 #### Workout Store (`src/stores/workout.ts`)
@@ -105,17 +105,17 @@ Browser-based app to automatically switch Spotify playlists based on cycling pow
 **ConfigView** (`src/views/ConfigView.vue`)
 - FTP input field
 - Bluetooth device selector (scan button)
-- Power zone → playlist mapper
+- Power to playlist mapper
   - Table with columns: Min Power %, Playlist dropdown
-  - Add/remove zone buttons
-  - Sort zones automatically by power %
+  - Add/remove mapping buttons
+  - Sort mappings automatically by power %
 - Save button
 - Navigate to workout when ready
 
 **WorkoutView** (`src/views/WorkoutView.vue`)
 - Real-time power display (large, prominent)
 - Current FTP % indicator
-- Active zone highlight
+- Active mapping highlight
 - Current playlist name & playing status
 - Connection status badges (Bluetooth, Spotify)
 - Start/stop workout button
@@ -142,12 +142,12 @@ Browser-based app to automatically switch Spotify playlists based on cycling pow
 **PowerDisplay** (`src/components/PowerDisplay.vue`)
 - Large power reading (watts)
 - FTP percentage
-- Color-coded by zone
+- Color-coded by mapping
 
-**ZoneMapper** (`src/components/ZoneMapper.vue`)
-- Table of power zones
+**MappingTable** (`src/components/MappingTable.vue`)
+- Table of power to playlist mappings
 - Add/edit/remove functionality
-- Validation (no overlapping zones)
+- Validation (no overlapping mappings)
 
 ### 6. Routing
 
@@ -174,20 +174,20 @@ Browser-based app to automatically switch Spotify playlists based on cycling pow
 3. On each power reading:
    - Update display
    - Calculate FTP %
-   - Determine target zone
-   - If zone changed → switch playlist
+   - Determine target playlist
+   - If playlist changed → switch playlist
 4. Handle disconnections gracefully
 
-#### Power Zone Matching
+#### Power to Playlist Matching
 ```typescript
-function getPlaylistForPower(powerPct: number, zones: Zone[]): string {
-  // Zones sorted by minPower descending
-  for (const zone of zones) {
-    if (powerPct >= zone.minPower) {
-      return zone.playlistId
+function getPlaylistForPower(powerPct: number, mapping: PlaylistMapping[]): string {
+  // Mappings sorted by minPower descending
+  for (const m of mapping) {
+    if (powerPct >= m.minPower) {
+      return m.playlistId
     }
   }
-  return zones[zones.length - 1].playlistId // fallback to lowest zone
+  return mapping[mapping.length - 1].playlistId // fallback to lowest mapping
 }
 ```
 
@@ -204,7 +204,7 @@ function getPlaylistForPower(powerPct: number, zones: Zone[]): string {
   "powerplay_config": {
     "ftp": 255,
     "deviceAddress": "7C47D35F-B669-2830-4D08-D7A412880E9B",
-    "powerZones": [
+    "playlistMapping": [
       { "minPower": 95, "playlistId": "..." },
       { "minPower": 80, "playlistId": "..." },
       { "minPower": 0, "playlistId": "..." }
@@ -251,7 +251,7 @@ powerplay-web/
 │   │   ├── BluetoothButton.vue
 │   │   ├── PlaylistSelector.vue
 │   │   ├── PowerDisplay.vue
-│   │   └── ZoneMapper.vue
+│   │   └── MappingTable.vue
 │   ├── services/
 │   │   ├── bluetooth.ts
 │   │   ├── spotify.ts
@@ -327,7 +327,7 @@ powerplay-web/
 - Workout history tracking
 - ZWO file import (like Python version)
 - Multiple profile support
-- Custom zone colors
-- Audio cues for zone changes
+- Custom mapping colors
+- Audio cues for playlist changes
 - Integration with Strava/TrainingPeaks
 - Mobile app (React Native/Capacitor)

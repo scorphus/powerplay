@@ -4,9 +4,9 @@ Browser-based app to automatically switch Spotify playlists based on cycling pow
 
 ## Features
 
-- 🎵 Automatic Spotify playlist switching based on power zones
+- 🎵 Automatic Spotify playlist switching based on power output
 - 🚴 Real-time power monitoring via Web Bluetooth
-- ⚡ FTP-based power zone configuration
+- ⚡ FTP-based power to playlist mapping
 - 🎨 Modern, responsive UI with dark mode
 - 💾 Local storage for configuration persistence
 
@@ -54,8 +54,8 @@ Open [http://localhost:5173](http://localhost:5173) in Chrome or Edge.
 1. **Login**: Click "Login with Spotify" and authorize the app
 2. **Configure FTP**: Enter your Functional Threshold Power in watts
 3. **Connect Device**: Click "Scan" to select your smart trainer
-4. **Map Zones**: Define power zones (% of FTP) and assign playlists
-5. **Save**: Save your configuration
+4. **Power to Playlist**: Define power thresholds (% of FTP) and assign playlists
+5. **Save**: Configuration is saved automatically
 
 ### During Workout
 
@@ -64,7 +64,7 @@ Open [http://localhost:5173](http://localhost:5173) in Chrome or Edge.
 3. **Ride**: The app will automatically switch playlists based on your power output
 4. **Monitor**: Watch real-time power, FTP %, and current playlist
 
-### Power Zone Example
+### Power to Playlist Example
 
 | Min Power % | Playlist           |
 | ----------- | ------------------ |

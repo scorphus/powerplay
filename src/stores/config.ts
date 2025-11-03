@@ -66,10 +66,10 @@ export const useConfigStore = defineStore('config', () => {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
       try {
-        const data: any = JSON.parse(stored)
+        const data: Config = JSON.parse(stored)
         ftp.value = data.ftp
         deviceAddress.value = data.deviceAddress
-        playlistMapping.value = data.playlistMapping || data.powerZones || []
+        playlistMapping.value = data.playlistMapping
         sortMapping()
       } catch (error) {
         console.error('Failed to parse stored config data:', error)
