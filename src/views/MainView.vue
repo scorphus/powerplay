@@ -40,20 +40,14 @@
         <!-- Header -->
         <div class="flex items-center justify-between">
           <h1 class="text-3xl font-bold text-white">PowerPlay</h1>
-          <button @click="showSettings = !showSettings" class="text-purple-400 hover:text-purple-300">
-            {{ showSettings ? 'Close' : 'Settings' }}
-          </button>
-        </div>
-
-        <!-- Settings Panel -->
-        <div v-if="showSettings" class="bg-white/10 backdrop-blur-lg rounded-xl p-6 shadow-2xl space-y-4">
-          <h2 class="text-xl font-semibold text-white">Settings</h2>
-          <button
-            @click="handleLogout"
-            class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200"
-          >
-            Logout from Spotify
-          </button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button @click="handleClearData">
+              Clear data
+            </button>
+            <button @click="handleLogout">
+              Logout
+            </button>
+          </div>
         </div>
 
         <!-- Main Content Grid -->
@@ -258,7 +252,6 @@ const workoutStore = useWorkoutStore()
 const playlistsStore = usePlaylistsStore()
 
 const loading = ref(false)
-const showSettings = ref(false)
 const isWorkoutActive = ref(false)
 const error = ref<string | null>(null)
 const scanning = ref(false)
@@ -321,6 +314,13 @@ async function handleLogin() {
 function handleLogout() {
   if (confirm('Are you sure you want to logout?')) {
     authStore.logout()
+  }
+}
+
+function handleClearData() {
+  if (confirm('Are you sure you want to clear all data? This will logout and remove all configuration.')) {
+    authStore.logout()
+    configStore.reset()
   }
 }
 
