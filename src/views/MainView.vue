@@ -61,7 +61,7 @@
           <!-- Left Column: Power Display (2/3 on large screens) -->
           <div class="lg:col-span-2 space-y-6">
             <!-- Connection Status & Controls -->
-            <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 shadow-2xl">
+            <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 shadow-2xl space-y-4">
               <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="space-y-2">
                   <div class="flex items-center gap-4">
@@ -79,19 +79,25 @@
                 </div>
                 <button
                   v-if="!isWorkoutActive"
-                  @click="startWorkout"
-                  :disabled="!canStartWorkout"
+                  @click="startMonitoring"
+                  :disabled="!canStart"
                   class="bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200"
                 >
-                  Start Workout
+                  Start Playing Along
                 </button>
                 <button
                   v-else
-                  @click="stopWorkout"
+                  @click="stopMonitoring"
                   class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200"
                 >
-                  Stop Workout
+                  Stop
                 </button>
+              </div>
+
+              <div v-if="!isWorkoutActive && !workoutStore.isSpotifyPlaying" class="bg-blue-500/20 border border-blue-500 rounded-lg p-3">
+                <p class="text-blue-200 text-sm">
+                  💡 <strong>Tip:</strong> Start playing music on Spotify first (on any device), then click "Start Playing Along"
+                </p>
               </div>
             </div>
 
@@ -150,13 +156,22 @@
 
               <div>
                 <label class="block text-white font-semibold mb-2 text-sm">Bluetooth Device</label>
-                <button
-                  @click="handleScanDevice"
-                  :disabled="scanning || isWorkoutActive"
-                  class="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-                >
-                  {{ scanning ? 'Scanning...' : deviceName || 'Scan for Device' }}
-                </button>
+                <div class="flex gap-2">
+                  <button
+                    @click="handleScanDevice"
+                    :disabled="scanning || isWorkoutActive || workoutStore.isBluetoothConnected"
+                    class="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 truncate"
+                  >
+                    {{ scanning ? 'Scanning...' : (workoutStore.isBluetoothConnected && deviceName) ? `✓ ${deviceName}` : 'Connect Device' }}
+                  </button>
+                  <button
+                    v-if="workoutStore.isBluetoothConnected && !isWorkoutActive"
+                    @click="handleDisconnectDevice"
+                    class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -254,8 +269,8 @@ const localZones = ref<PowerZone[]>([...configStore.powerZones])
 const bluetoothService = new BluetoothPowerService()
 let playbackCheckInterval: number | null = null
 
-const canStartWorkout = computed(() => {
-  return localFtp.value > 0 && localZones.value.every(z => z.playlistId !== '') && configStore.deviceAddress !== null
+const canStart = computed(() => {
+  return localFtp.value > 0 && localZones.value.every(z => z.playlistId !== '') && bluetoothService.isConnected()
 })
 
 const currentPlaylistName = computed(() => {
@@ -328,36 +343,45 @@ function removeZone(index: number) {
 
 async function handleScanDevice() {
   scanning.value = true
+  error.value = null
   try {
     const device = await bluetoothService.requestDevice()
+    await bluetoothService.connect()
     deviceName.value = device.name || 'Unknown Device'
     configStore.setDeviceAddress(device.id)
+    workoutStore.setBluetoothConnection(true)
   } catch (err) {
     console.error('Failed to scan for device:', err)
-    error.value = 'Failed to scan for Bluetooth device. Make sure your device is powered on and nearby.'
+    error.value = 'Failed to connect to Bluetooth device. Make sure your device is powered on and nearby.'
   } finally {
     scanning.value = false
   }
 }
 
-async function startWorkout() {
+async function handleDisconnectDevice() {
+  try {
+    await bluetoothService.disconnect()
+    workoutStore.setBluetoothConnection(false)
+    deviceName.value = null
+    configStore.setDeviceAddress(null)
+  } catch (err) {
+    console.error('Failed to disconnect device:', err)
+  }
+}
+
+async function startMonitoring() {
   error.value = null
   try {
-    if (!bluetoothService.isConnected()) {
-      await bluetoothService.requestDevice()
-      await bluetoothService.connect()
-    }
-    workoutStore.setBluetoothConnection(true)
     await bluetoothService.startNotifications(handlePowerMeasurement)
     playbackCheckInterval = setInterval(checkPlayback, 2000) as unknown as number
     isWorkoutActive.value = true
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to start workout'
-    console.error('Failed to start workout:', err)
+    error.value = err instanceof Error ? err.message : 'Failed to start monitoring'
+    console.error('Failed to start monitoring:', err)
   }
 }
 
-async function stopWorkout() {
+async function stopMonitoring() {
   isWorkoutActive.value = false
   if (playbackCheckInterval) {
     clearInterval(playbackCheckInterval)
@@ -365,11 +389,9 @@ async function stopWorkout() {
   }
   try {
     await bluetoothService.stopNotifications()
-    await bluetoothService.disconnect()
-    workoutStore.setBluetoothConnection(false)
     workoutStore.reset()
   } catch (err) {
-    console.error('Failed to stop workout:', err)
+    console.error('Failed to stop monitoring:', err)
   }
 }
 
@@ -411,15 +433,15 @@ async function checkAndSwitchPlaylist() {
 onMounted(async () => {
   if (authStore.isAuthenticated) {
     await playlistsStore.fetchPlaylists()
-    if (configStore.deviceAddress) {
-      deviceName.value = 'Previously connected device'
-    }
   }
 })
 
 onUnmounted(() => {
   if (isWorkoutActive.value) {
-    stopWorkout()
+    stopMonitoring()
+  }
+  if (bluetoothService.isConnected()) {
+    bluetoothService.disconnect()
   }
 })
 </script>
