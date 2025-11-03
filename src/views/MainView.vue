@@ -329,8 +329,8 @@ function handleSaveFtp() {
 }
 
 function handleSaveZones() {
-  configStore.powerZones = [...localZones.value]
-  localZones.value.sort((a, b) => b.minPower - a.minPower)
+  const sorted = [...localZones.value].sort((a, b) => b.minPower - a.minPower)
+  configStore.setPowerZones(sorted)
 }
 
 function addZone() {
@@ -421,6 +421,7 @@ async function checkAndSwitchPlaylist() {
 onMounted(async () => {
   if (authStore.isAuthenticated) {
     await playlistsStore.fetchPlaylists()
+    localZones.value = [...configStore.powerZones]
   }
 })
 

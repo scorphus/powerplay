@@ -44,6 +44,11 @@ export const useConfigStore = defineStore('config', () => {
     saveToStorage()
   }
 
+  function setPowerZones(zones: PowerZone[]) {
+    powerZones.value = zones
+    saveToStorage()
+  }
+
   function sortZones() {
     powerZones.value.sort((a, b) => b.minPower - a.minPower)
   }
@@ -90,6 +95,7 @@ export const useConfigStore = defineStore('config', () => {
     addZone,
     updateZone,
     removeZone,
+    setPowerZones,
     reset,
   }
 })
