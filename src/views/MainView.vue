@@ -176,10 +176,10 @@
               </div>
             </div>
 
-            <!-- Power Zones -->
+            <!-- Power to Playlist -->
             <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 shadow-2xl space-y-4">
               <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-white">Power Zones</h3>
+                <h3 class="text-lg font-semibold text-white">Power to Playlist</h3>
                 <button
                   @click="addZone"
                   class="bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-3 rounded-lg transition-colors duration-200 text-sm"
@@ -199,39 +199,46 @@
                   class="bg-white/5 border-2 rounded-lg p-3"
                   :class="isActiveZone(zone) ? 'border-green-400' : 'border-white/20'"
                 >
-                  <div class="flex items-center gap-2 mb-2">
-                    <input
-                      v-model.number="zone.minPower"
-                      @change="handleSaveZones"
-                      type="number"
-                      min="0"
-                      max="200"
-                      class="w-16 bg-white/20 text-white border border-white/30 rounded px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                    <span class="text-white text-sm">%+</span>
+                  <div class="flex items-start gap-2 mb-2">
+                    <div class="flex-1 space-y-2">
+                      <div class="flex items-center gap-2">
+                        <span class="text-gray-300 text-sm">Power higher than</span>
+                        <input
+                          v-model.number="zone.minPower"
+                          @change="handleSaveZones"
+                          type="number"
+                          min="0"
+                          max="200"
+                          class="w-16 bg-white/20 text-white border border-white/30 rounded px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                        <span class="text-gray-300 text-sm">% of FTP, switch to:</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <select
+                          v-model="zone.playlistId"
+                          @change="handleSaveZones"
+                          class="flex-1 bg-white/20 text-white border border-white/30 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option value="" class="bg-gray-800">Select playlist...</option>
+                          <option
+                            v-for="playlist in playlistsStore.playlists"
+                            :key="playlist.id"
+                            :value="playlist.id"
+                            class="bg-gray-800"
+                          >
+                            {{ playlist.name }}
+                          </option>
+                        </select>
+                      </div>
+                    </div>
                     <button
                       @click="removeZone(index)"
-                      class="ml-auto text-red-400 hover:text-red-300 font-bold text-xl"
+                      class="text-red-400 hover:text-red-300 font-bold text-xl flex-shrink-0"
                       :disabled="localZones.length <= 1"
                     >
                       ×
                     </button>
                   </div>
-                  <select
-                    v-model="zone.playlistId"
-                    @change="handleSaveZones"
-                    class="w-full bg-white/20 text-white border border-white/30 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="" class="bg-gray-800">Select playlist...</option>
-                    <option
-                      v-for="playlist in playlistsStore.playlists"
-                      :key="playlist.id"
-                      :value="playlist.id"
-                      class="bg-gray-800"
-                    >
-                      {{ playlist.name }}
-                    </option>
-                  </select>
                 </div>
               </div>
             </div>
@@ -249,7 +256,7 @@ import { useConfigStore } from '../stores/config'
 import { useWorkoutStore } from '../stores/workout'
 import { usePlaylistsStore } from '../stores/playlists'
 import { BluetoothPowerService, isBluetoothSupported } from '../services/bluetooth'
-import { initiateSpotifyAuth, getCurrentPlayback, startPlayback } from '../services/spotify'
+import { initiateSpotifyAuth, startPlayback } from '../services/spotify'
 import type { PowerZone } from '../types'
 import { debug } from '../utils/debug'
 
@@ -269,7 +276,6 @@ const localFtp = ref(configStore.ftp)
 const localZones = ref<PowerZone[]>([...configStore.powerZones])
 
 const bluetoothService = new BluetoothPowerService()
-let playbackCheckInterval: number | null = null
 
 const canStart = computed(() => {
   const ftpOk = localFtp.value > 0
@@ -378,7 +384,7 @@ async function startMonitoring() {
   error.value = null
   try {
     await bluetoothService.startNotifications(handlePowerMeasurement)
-    playbackCheckInterval = setInterval(checkPlayback, 2000) as unknown as number
+    workoutStore.setSpotifyPlaying(true)
     isWorkoutActive.value = true
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to start monitoring'
@@ -388,10 +394,6 @@ async function startMonitoring() {
 
 async function stopMonitoring() {
   isWorkoutActive.value = false
-  if (playbackCheckInterval) {
-    clearInterval(playbackCheckInterval)
-    playbackCheckInterval = null
-  }
   try {
     await bluetoothService.stopNotifications()
     workoutStore.reset()
@@ -407,29 +409,16 @@ function handlePowerMeasurement(power: number) {
   checkAndSwitchPlaylist()
 }
 
-async function checkPlayback() {
-  try {
-    const playback = await getCurrentPlayback()
-    workoutStore.setSpotifyPlaying(playback.isPlaying)
-    if (playback.playlistUri) {
-      const playlistId = playback.playlistUri.split(':').pop() || null
-      workoutStore.setCurrentPlaylist(playlistId)
-    }
-  } catch (err) {
-    console.error('Failed to check playback:', err)
-  }
-}
-
 async function checkAndSwitchPlaylist() {
   const targetId = workoutStore.targetPlaylistId
   const currentId = workoutStore.currentPlaylistId
   if (targetId && targetId !== currentId) {
+    const playlist = playlistsStore.getPlaylistById(targetId)
+    debug(`[Playlist] Switching: ${currentId || 'none'} → ${targetId} (${playlist?.name})`)
     try {
-      const playlist = playlistsStore.getPlaylistById(targetId)
       if (playlist) {
         await startPlayback(playlist.uri)
         workoutStore.setCurrentPlaylist(targetId)
-        workoutStore.setSpotifyPlaying(true)
       }
     } catch (err) {
       console.error('Failed to switch playlist:', err)
