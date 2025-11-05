@@ -388,7 +388,9 @@ async function stopMonitoring() {
   isWorkoutActive.value = false
   try {
     await bluetoothService.stopNotifications()
-    workoutStore.reset()
+    workoutStore.updatePower(0)
+    workoutStore.setSpotifyPlaying(false)
+    workoutStore.setCurrentPlaylist(null)
   } catch (err) {
     console.error('Failed to stop monitoring:', err)
   }
