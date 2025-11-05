@@ -40,11 +40,12 @@
         <!-- Header -->
         <div class="flex items-center justify-between">
           <h1 class="text-3xl font-bold text-white">PowerPlay</h1>
-          <div style="display: flex; gap: 0.5rem;">
-            <button @click="handleClearData">
+          <div class="flex gap-2">
+            <button @click="handleClearData" class="text-gray-300 hover:text-white text-sm transition-colors">
               Clear data
             </button>
-            <button @click="handleLogout">
+            <span class="text-gray-300/25">|</span>
+            <button @click="handleLogout" class="text-gray-300 hover:text-white text-sm transition-colors">
               Logout
             </button>
           </div>
