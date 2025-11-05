@@ -180,17 +180,17 @@
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
               </div>
 
-              <div v-else class="space-y-4 max-h-96 overflow-y-auto">
+              <div v-else class="space-y-4 h-88.5 overflow-y-auto">
                 <div
                   v-for="(mapping, index) in localMapping"
                   :key="index"
                   class="pb-4"
                   :class="{ 'border-b border-white/10': index < localMapping.length - 1 }"
                 >
-                  <div class="flex items-center gap-3">
+                  <div class="flex gap-3">
                     <div class="flex-1 space-y-2">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-gray-400 text-sm">Power higher than</span>
+                      <div class="flex items-center gap-2">
+                        <span class="text-gray-400 text-sm">Minimum power (% FTP):</span>
                         <input
                           v-model.number="mapping.minPower"
                           @change="handleSaveMapping"
@@ -199,7 +199,6 @@
                           max="200"
                           class="w-16 bg-white/20 text-white border border-white/30 rounded px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
                         />
-                        <span class="text-gray-400 text-sm">% of FTP, switch to:</span>
                       </div>
                       <select
                         v-model="mapping.playlistId"
@@ -219,7 +218,7 @@
                     </div>
                     <button
                       @click="removeMapping(index)"
-                      class="text-red-400 hover:text-red-300 font-bold text-2xl flex-shrink-0 w-8 h-8 flex items-center justify-center"
+                      class="text-red-400 hover:text-red-300 font-bold text-2xl flex-shrink-0 w-8 h-8 flex items-center justify-center self-end"
                       :disabled="localMapping.length <= 1"
                     >
                       ×
