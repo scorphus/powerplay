@@ -22,7 +22,7 @@ export const useConfigStore = defineStore('config', () => {
     saveToStorage()
   }
 
-  function setDeviceAddress(address: string) {
+  function setDeviceAddress(address: string | null) {
     deviceAddress.value = address
     saveToStorage()
   }

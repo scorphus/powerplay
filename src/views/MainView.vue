@@ -297,10 +297,6 @@ function getPowerColor(): string {
   return 'text-red-400'
 }
 
-function isActiveMapping(mapping: PlaylistMapping): boolean {
-  return mapping.playlistId === workoutStore.targetPlaylistId
-}
-
 async function handleLogin() {
   loading.value = true
   try {
