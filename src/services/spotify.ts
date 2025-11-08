@@ -160,6 +160,18 @@ export async function getCurrentPlayback(): Promise<{ isPlaying: boolean; playli
   return result
 }
 
+export async function setShuffle(state: boolean): Promise<void> {
+  debug('[Spotify] PUT /me/player/shuffle - Setting shuffle to:', state)
+  const response = await spotifyFetch(`/me/player/shuffle?state=${state}`, {
+    method: 'PUT',
+  })
+  if (!response.ok && response.status !== 204) {
+    debugError('[Spotify] Failed to set shuffle, status:', response.status)
+    throw new Error('Failed to set shuffle')
+  }
+  debug('[Spotify] Shuffle set successfully')
+}
+
 export async function startPlayback(playlistUri: string): Promise<void> {
   debug('[Spotify] PUT /me/player/play - Switching to playlist:', playlistUri)
   const response = await spotifyFetch('/me/player/play', {
@@ -176,4 +188,5 @@ export async function startPlayback(playlistUri: string): Promise<void> {
     throw new Error('Failed to start playback')
   }
   debug('[Spotify] Playback started successfully')
+  await setShuffle(true)
 }
