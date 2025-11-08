@@ -40,12 +40,16 @@
         <!-- Header -->
         <div class="flex items-center justify-between">
           <h1 class="text-3xl font-bold text-white">PowerPlay</h1>
-          <div class="flex gap-2">
-            <button @click="handleClearData" class="text-gray-300 hover:text-white text-sm transition-colors">
+          <div class="flex items-center gap-2">
+            <a href="https://github.com/scorphus/powerplay" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer">
+              GitHub
+            </a>
+            <span class="text-gray-300/25">|</span>
+            <button @click="handleClearData" class="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer">
               Clear data
             </button>
             <span class="text-gray-300/25">|</span>
-            <button @click="handleLogout" class="text-gray-300 hover:text-white text-sm transition-colors">
+            <button @click="handleLogout" class="text-gray-300 hover:text-white text-sm transition-colors cursor-pointer">
               Logout
             </button>
           </div>
