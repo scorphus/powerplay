@@ -331,3 +331,9 @@ powerplay-web/
 - Audio cues for playlist changes
 - Integration with Strava/TrainingPeaks
 - Mobile app (React Native/Capacitor)
+
+## To Do
+
+- Trainer button to include " - *disconnect*" text when connected and disconnects on click
+- Throttle playlist switching to avoid rapid changes on fluctuating power (that happens on boundaries between power ranges)
+- Custom Client ID support (for users beyond 25-user limit)

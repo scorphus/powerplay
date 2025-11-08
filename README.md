@@ -7,7 +7,7 @@ Browser-based app to automatically switch Spotify playlists based on cycling pow
 - 🎵 Automatic Spotify playlist switching based on power output
 - 🚴 Real-time power monitoring via Web Bluetooth
 - ⚡ FTP-based power to playlist mapping
-- 🎨 Modern, responsive UI with dark mode
+- 🎨 Modern, simple, responsive UI
 - 💾 Local storage for configuration persistence
 
 ## Prerequisites
@@ -163,16 +163,6 @@ The app can be deployed to any static hosting service:
 3. **Active Spotify Session**: Requires Spotify to be playing on a device
 4. **Single Device**: Bluetooth can only connect to one app at a time
 5. **API Rate Limits**: Spotify has rate limits on playlist switching
-
-## Future Enhancements
-
-- [ ] ZWO workout file import (structured workouts)
-- [ ] Workout history and analytics
-- [ ] Multiple user profiles
-- [ ] Custom zone colors and names
-- [ ] Audio cues for zone changes
-- [ ] Mobile app version
-- [ ] Integration with Strava/TrainingPeaks
 
 ## License
 
