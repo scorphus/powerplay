@@ -237,6 +237,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useConfigStore } from '../stores/config'
 import { useWorkoutStore } from '../stores/workout'
@@ -245,6 +246,8 @@ import { BluetoothPowerService, isBluetoothSupported } from '../services/bluetoo
 import { initiateSpotifyAuth, startPlayback } from '../services/spotify'
 import type { PlaylistMapping } from '../types'
 import { debug } from '../utils/debug'
+
+const route = useRoute()
 
 const authStore = useAuthStore()
 const configStore = useConfigStore()
@@ -416,10 +419,27 @@ async function checkAndSwitchPlaylist() {
   }
 }
 
+function initializeDemoMode() {
+  if (route.query.demo === undefined) return
+  const demoValue = route.query.demo
+  const simulatedPower = demoValue && !isNaN(Number(demoValue))
+    ? Number(demoValue)
+    : Math.round(configStore.ftp * 1.07)
+  workoutStore.updatePower(simulatedPower)
+  workoutStore.setBluetoothConnection(true)
+  workoutStore.setSpotifyPlaying(true)
+  isWorkoutActive.value = true
+  deviceName.value = 'Wahoo KICKR A1B2'
+  if (workoutStore.targetPlaylistId) {
+    workoutStore.setCurrentPlaylist(workoutStore.targetPlaylistId)
+  }
+}
+
 onMounted(async () => {
   if (authStore.isAuthenticated) {
     await playlistsStore.fetchPlaylists()
     localMapping.value = [...configStore.playlistMapping]
+    initializeDemoMode()
   }
 })
 
