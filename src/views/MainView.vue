@@ -269,6 +269,11 @@ const localMapping = ref<PlaylistMapping[]>([...configStore.playlistMapping])
 
 const bluetoothService = new BluetoothPowerService()
 
+const PLAYLIST_SWITCH_THROTTLE = 3000
+const POWER_CHANGE_THRESHOLD = 3
+let lastSwitchTime = 0
+let lastSwitchPowerPercent = 0
+
 const canStart = computed(() => {
   const ftpOk = localFtp.value > 0
   const mappingOk = localMapping.value.every(m => m.playlistId !== '')
@@ -410,12 +415,24 @@ async function checkAndSwitchPlaylist() {
   const targetId = workoutStore.targetPlaylistId
   const currentId = workoutStore.currentPlaylistId
   if (targetId && targetId !== currentId) {
+    const now = Date.now()
+    const timeSinceLastSwitch = now - lastSwitchTime
+    const currentPowerPercent = workoutStore.currentPowerPercent
+    const powerChange = Math.abs(currentPowerPercent - lastSwitchPowerPercent)
+    const throttlePassed = timeSinceLastSwitch >= PLAYLIST_SWITCH_THROTTLE
+    const significantChange = powerChange >= POWER_CHANGE_THRESHOLD
+    if (!throttlePassed && !significantChange) {
+      debug(`[Playlist] Throttled: ${timeSinceLastSwitch}ms since last switch, power change ${powerChange}%`)
+      return
+    }
     const playlist = playlistsStore.getPlaylistById(targetId)
     debug(`[Playlist] Switching: ${currentId || 'none'} → ${targetId} (${playlist?.name})`)
     try {
       if (playlist) {
         await startPlayback(playlist.uri)
         workoutStore.setCurrentPlaylist(targetId)
+        lastSwitchTime = now
+        lastSwitchPowerPercent = currentPowerPercent
       }
     } catch (err) {
       console.error('Failed to switch playlist:', err)

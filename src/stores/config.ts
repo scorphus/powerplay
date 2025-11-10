@@ -8,7 +8,9 @@ const DEFAULT_CONFIG: Config = {
   ftp: 250,
   deviceAddress: null,
   playlistMapping: [
-    { minPower: 0, playlistId: '' },
+    { minPower: 90, playlistId: '43XHhz9ZrrG5ZIUF6kaJA9' },
+    { minPower: 80, playlistId: '0DYLV58ymH7BvcJVzHQecb' },
+    { minPower: 0, playlistId: '0mX6j5dV48HDgnktKYeaR4' },
   ],
 }
 
